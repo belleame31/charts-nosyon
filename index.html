@@ -11,53 +11,46 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         .chart-container { position: relative; height: 75vh; width: 100%; }
         .hidden { display: none; }
-        .loader { border-top-color: #3b82f6; animation: spinner 0.6s linear infinite; }
-        @keyframes spinner { to { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-[#ffffff] dark:bg-[#191919] text-gray-900 dark:text-gray-100">
+<body class="bg-white dark:bg-[#191919] text-gray-900 dark:text-gray-100">
 
     <!-- Setup Screen -->
-    <div id="setup-screen" class="max-w-md mx-auto mt-12 p-8 bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-gray-100 dark:border-zinc-800">
-        <div class="flex items-center space-x-3 mb-8 pb-4 border-b border-gray-100 dark:border-zinc-800">
-            <div class="bg-blue-500 p-2 rounded-lg">
-                <i class="lucide-bar-chart-3 text-white w-6 h-6"></i>
-            </div>
-            <h1 class="text-2xl font-bold">Chart Setup</h1>
+    <div id="setup-screen" class="max-w-md mx-auto mt-12 p-8 bg-white dark:bg-zinc-900 rounded-xl shadow-2xl border border-gray-100 dark:border-zinc-800">
+        <div class="flex items-center space-x-3 mb-6 pb-4 border-b dark:border-zinc-800">
+            <i class="lucide-database text-blue-500 w-6 h-6"></i>
+            <h1 class="text-xl font-bold">Connect Your Database</h1>
         </div>
 
-        <div class="space-y-6">
+        <div class="space-y-4">
             <div>
-                <label class="block text-sm font-semibold mb-2 text-gray-600 dark:text-gray-400">Notion Database ID</label>
-                <input id="db-id" type="text" placeholder="Paste 32-character ID..." 
-                    class="w-full p-3 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all">
-                <p class="text-[10px] text-gray-400 mt-2 leading-relaxed">
-                    1. Open your database in Notion.<br>
-                    2. Click "..." → "Add connections" → Invite your integration.<br>
-                    3. Copy the ID from the URL (the string of numbers/letters).
-                </p>
+                <label class="block text-sm font-semibold mb-2">Paste Database Link or ID</label>
+                <input id="db-input" type="text" placeholder="https://www.notion.so/..." 
+                    class="w-full p-3 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
             </div>
 
-            <button id="connect-btn" onclick="fetchData()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-all flex items-center justify-center space-x-2 shadow-lg shadow-blue-500/20">
-                <div id="btn-loader" class="hidden loader w-4 h-4 border-2 border-white rounded-full mr-2"></div>
-                <span id="btn-text">Connect Database</span>
+            <div class="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/30 rounded-lg text-xs text-amber-800 dark:text-amber-200">
+                <strong>Important:</strong> In Notion, go to your Database page → Click "..." → "Add connections" → and search for your integration name.
+            </div>
+
+            <button id="connect-btn" onclick="fetchData()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg flex items-center justify-center space-x-2">
+                <span id="btn-text">Load Data</span>
             </button>
             
-            <div id="error-container" class="hidden p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg">
-                <p id="error-msg" class="text-red-600 dark:text-red-400 text-sm font-medium"></p>
+            <div id="error-box" class="hidden p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded-lg">
+                <p id="error-msg" class="text-red-600 dark:text-red-400 text-sm"></p>
             </div>
         </div>
     </div>
 
     <!-- Chart Screen -->
-    <div id="chart-screen" class="hidden h-screen flex flex-col animate-in fade-in duration-500">
-        <header class="flex items-center justify-between p-4 border-b border-gray-100 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md">
+    <div id="chart-screen" class="hidden h-screen flex flex-col">
+        <header class="flex items-center justify-between p-4 border-b dark:border-zinc-800 bg-white dark:bg-zinc-900">
             <div class="flex items-center space-x-4">
-                <button onclick="showSetup()" class="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">
-                    <i class="lucide-settings w-5 h-5 text-gray-500"></i>
+                <button onclick="showSetup()" class="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg">
+                    <i class="lucide-settings w-5 h-5"></i>
                 </button>
-                <div class="h-6 w-[1px] bg-gray-200 dark:bg-zinc-700"></div>
-                <select id="chart-type" onchange="updateChart()" class="bg-transparent text-sm font-bold outline-none cursor-pointer">
+                <select id="chart-type" onchange="updateChart()" class="bg-transparent text-sm font-bold outline-none">
                     <option value="bar">Bar Chart</option>
                     <option value="line">Line Chart</option>
                     <option value="pie">Pie Chart</option>
@@ -65,15 +58,10 @@
                 </select>
             </div>
 
-            <div class="flex items-center space-x-3">
-                <div class="hidden sm:flex items-center space-x-2 bg-gray-50 dark:bg-zinc-800 p-1 rounded-lg border border-gray-100 dark:border-zinc-700">
-                    <select id="label-prop" onchange="updateChart()" class="text-xs bg-transparent border-none rounded p-1 outline-none"></select>
-                    <span class="text-gray-400 text-xs">by</span>
-                    <select id="value-prop" onchange="updateChart()" class="text-xs bg-transparent border-none rounded p-1 outline-none"></select>
-                </div>
-                <button onclick="fetchData()" class="p-2 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-lg transition-colors group">
-                    <i class="lucide-refresh-cw w-4 h-4 text-blue-600 dark:text-blue-400 group-active:rotate-180 transition-transform"></i>
-                </button>
+            <div class="flex items-center space-x-2">
+                <select id="label-prop" onchange="updateChart()" class="text-xs bg-gray-100 dark:bg-zinc-800 rounded p-1"></select>
+                <select id="value-prop" onchange="updateChart()" class="text-xs bg-gray-100 dark:bg-zinc-800 rounded p-1"></select>
+                <button onclick="fetchData()" class="p-2"><i class="lucide-refresh-cw w-4 h-4"></i></button>
             </div>
         </header>
 
@@ -85,9 +73,9 @@
     </div>
 
     <script>
-        const NOTION_TOKEN = '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';
-        let databaseData = [];
-        let myChart = null;
+        const TOKEN = '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';
+        let dbResults = [];
+        let chart = null;
 
         function showSetup() {
             document.getElementById('setup-screen').classList.remove('hidden');
@@ -95,165 +83,119 @@
         }
 
         async function fetchData() {
-            const dbId = document.getElementById('db-id').value.trim();
-            const btn = document.getElementById('connect-btn');
-            const btnText = document.getElementById('btn-text');
-            const btnLoader = document.getElementById('btn-loader');
-            const errorContainer = document.getElementById('error-container');
+            const input = document.getElementById('db-input').value.trim();
+            const errorBox = document.getElementById('error-box');
             const errorMsg = document.getElementById('error-msg');
+            const btnText = document.getElementById('btn-text');
 
-            if (!dbId) {
-                showError("Please enter your Database ID.");
+            if (!input) {
+                errorBox.classList.remove('hidden');
+                errorMsg.innerText = "Please paste a link or ID.";
                 return;
             }
 
-            // Clean ID (remove workspace prefix if user pasted full URL)
-            const cleanId = dbId.includes('?') ? dbId.split('?')[0].split('/').pop() : dbId.split('/').pop();
+            // Extract ID from link like https://www.notion.so/ID?v=...
+            const idMatch = input.match(/[a-f0-9]{32}/i);
+            const dbId = idMatch ? idMatch[0] : input;
 
-            btn.disabled = true;
-            btnLoader.classList.remove('hidden');
             btnText.innerText = "Connecting...";
-            errorContainer.classList.add('hidden');
+            errorBox.classList.add('hidden');
 
             try {
-                // We use a CORS proxy to bypass Notion's security restrictions on browser-only requests
+                // Using corsproxy.io to bypass Notion's CORS policy in the browser
                 const proxy = "https://corsproxy.io/?";
-                const url = `https://api.notion.com/v1/databases/${cleanId}/query`;
+                const api = `https://api.notion.com/v1/databases/${dbId}/query`;
 
-                const response = await fetch(proxy + encodeURIComponent(url), {
+                const response = await fetch(proxy + encodeURIComponent(api), {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${NOTION_TOKEN}`,
+                        'Authorization': `Bearer ${TOKEN}`,
                         'Notion-Version': '2022-06-28',
                         'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ page_size: 100 })
+                    }
                 });
 
                 const data = await response.json();
 
                 if (!response.ok) {
-                    if (data.code === 'object_not_found') {
-                        throw new Error("Database not found. Did you forget to 'Add Connection' in Notion?");
-                    }
-                    throw new Error(data.message || "Failed to connect to Notion.");
+                    throw new Error(data.message || "Could not find database. Check 'Add Connection' in Notion.");
                 }
 
-                databaseData = data.results;
-                if (!databaseData || databaseData.length === 0) throw new Error("Database is empty or connection failed.");
+                dbResults = data.results;
+                if (dbResults.length === 0) throw new Error("The database is empty.");
 
-                populateSelects(databaseData[0].properties);
-                
+                populateOptions(dbResults[0].properties);
                 document.getElementById('setup-screen').classList.add('hidden');
                 document.getElementById('chart-screen').classList.remove('hidden');
                 updateChart();
 
             } catch (err) {
-                showError(err.message);
+                errorBox.classList.remove('hidden');
+                errorMsg.innerText = err.message;
             } finally {
-                btn.disabled = false;
-                btnLoader.classList.add('hidden');
-                btnText.innerText = "Connect Database";
+                btnText.innerText = "Load Data";
             }
         }
 
-        function showError(msg) {
-            const errorContainer = document.getElementById('error-container');
-            const errorMsg = document.getElementById('error-msg');
-            errorMsg.innerText = msg;
-            errorContainer.classList.remove('hidden');
-        }
+        function populateOptions(props) {
+            const lSelect = document.getElementById('label-prop');
+            const vSelect = document.getElementById('value-prop');
+            lSelect.innerHTML = "";
+            vSelect.innerHTML = "";
 
-        function populateSelects(properties) {
-            const labelSel = document.getElementById('label-prop');
-            const valueSel = document.getElementById('value-prop');
-            labelSel.innerHTML = "";
-            valueSel.innerHTML = "";
-
-            Object.keys(properties).forEach(key => {
-                const type = properties[key].type;
+            Object.keys(props).forEach(key => {
                 const opt = `<option value="${key}">${key}</option>`;
-                
-                // Labels can be almost anything
-                labelSel.innerHTML += opt;
-                
-                // Values should ideally be numbers, formulas, or rollups
-                if (['number', 'formula', 'rollup'].includes(type)) {
-                    valueSel.innerHTML += opt;
+                lSelect.innerHTML += opt;
+                if (props[key].type === 'number' || props[key].type === 'formula') {
+                    vSelect.innerHTML += opt;
                 }
             });
-
-            // Fallback if no numbers found
-            if (valueSel.innerHTML === "") valueSel.innerHTML = labelSel.innerHTML;
+            if (vSelect.innerHTML === "") vSelect.innerHTML = lSelect.innerHTML;
         }
 
-        function getVal(item, propName) {
-            const prop = item.properties[propName];
-            if (!prop) return 0;
-            
-            switch(prop.type) {
-                case 'title': return prop.title[0]?.plain_text || "Untitled";
-                case 'rich_text': return prop.rich_text[0]?.plain_text || "";
-                case 'number': return prop.number || 0;
-                case 'select': return prop.select?.name || "";
-                case 'status': return prop.status?.name || "";
-                case 'formula': return prop.formula.number || prop.formula.string || 0;
-                case 'checkbox': return prop.checkbox ? 1 : 0;
-                default: return 0;
-            }
+        function extractVal(item, name) {
+            const p = item.properties[name];
+            if (!p) return 0;
+            if (p.type === 'title') return p.title[0]?.plain_text || "Untitled";
+            if (p.type === 'number') return p.number || 0;
+            if (p.type === 'select') return p.select?.name || "";
+            if (p.type === 'status') return p.status?.name || "";
+            if (p.type === 'formula') return p.formula.number || 0;
+            return 0;
         }
 
         function updateChart() {
-            if (myChart) myChart.destroy();
+            if (chart) chart.destroy();
 
-            const labelProp = document.getElementById('label-prop').value;
-            const valueProp = document.getElementById('value-prop').value;
+            const lProp = document.getElementById('label-prop').value;
+            const vProp = document.getElementById('value-prop').value;
             const type = document.getElementById('chart-type').value;
 
-            // Sort data by label for better visuals
-            const rawData = databaseData.map(d => ({
-                label: getVal(d, labelProp),
-                value: getVal(d, valueProp)
-            }));
+            const labels = dbResults.map(i => extractVal(i, lProp));
+            const values = dbResults.map(i => extractVal(i, vProp));
 
             const ctx = document.getElementById('mainChart').getContext('2d');
             const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const accentColor = '#3b82f6';
 
-            myChart = new Chart(ctx, {
+            chart = new Chart(ctx, {
                 type: type,
                 data: {
-                    labels: rawData.map(d => d.label),
+                    labels: labels,
                     datasets: [{
-                        label: valueProp,
-                        data: rawData.map(d => d.value),
-                        backgroundColor: (type === 'pie' || type === 'doughnut') 
-                            ? ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'] 
-                            : `${accentColor}33`,
-                        borderColor: accentColor,
-                        borderWidth: 2,
-                        borderRadius: type === 'bar' ? 8 : 0,
-                        tension: 0.3 // For line charts
+                        label: vProp,
+                        data: values,
+                        backgroundColor: type.includes('pie') ? ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'] : '#3b82f6cc',
+                        borderColor: '#3b82f6',
+                        borderWidth: 1
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { 
-                            display: (type === 'pie' || type === 'doughnut'),
-                            labels: { color: isDark ? '#e4e4e7' : '#3f3f46', font: { weight: 'bold' } } 
-                        }
-                    },
+                    plugins: { legend: { labels: { color: isDark ? '#fff' : '#000' } } },
                     scales: (type === 'bar' || type === 'line') ? {
-                        y: { 
-                            grid: { color: isDark ? '#27272a' : '#f4f4f5' },
-                            ticks: { color: isDark ? '#71717a' : '#a1a1aa' } 
-                        },
-                        x: { 
-                            grid: { display: false },
-                            ticks: { color: isDark ? '#71717a' : '#a1a1aa' } 
-                        }
+                        y: { ticks: { color: isDark ? '#aaa' : '#666' } },
+                        x: { ticks: { color: isDark ? '#aaa' : '#666' } }
                     } : {}
                 }
             });
