@@ -3,70 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notion Chart Pro</title>
+    <title>Notion Chart Widget</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.321.0/font/lucide.min.css" rel="stylesheet">
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        .chart-container { position: relative; height: 65vh; width: 100%; }
+        body { font-family: -apple-system, system-ui, sans-serif; }
+        .chart-container { position: relative; height: 70vh; width: 100%; }
         .hidden { display: none; }
+        .spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-white dark:bg-[#0f0f0f] text-slate-900 dark:text-slate-100 transition-colors">
+<body class="bg-white dark:bg-[#121212] text-slate-900 dark:text-slate-100 transition-colors">
 
     <!-- Setup View -->
     <div id="setup-view" class="max-w-md mx-auto mt-20 p-8 bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl border dark:border-zinc-800">
-        <div class="flex items-center space-x-4 mb-8">
-            <div class="p-3 bg-blue-600 rounded-2xl text-white shadow-lg">
-                <i class="lucide-bar-chart-3 w-8 h-8"></i>
+        <div class="flex items-center space-x-3 mb-8">
+            <div class="p-3 bg-blue-600 rounded-2xl text-white">
+                <i class="lucide-bar-chart-3 w-6 h-6"></i>
             </div>
             <h1 class="text-2xl font-black">Notion Chart</h1>
         </div>
 
-        <div class="space-y-6">
+        <div class="space-y-4">
             <div>
                 <label class="block text-xs font-bold uppercase text-slate-400 mb-2">Database Link</label>
-                <input id="db-field" type="text" placeholder="Paste your Notion database URL..." 
-                    class="w-full p-4 bg-slate-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm">
+                <input id="db-input" type="text" placeholder="Paste your Notion DB URL..." 
+                    class="w-full p-4 bg-slate-50 dark:bg-zinc-800 border dark:border-zinc-700 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all">
             </div>
 
             <div id="err-box" class="hidden p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-2xl">
                 <p id="err-text" class="text-xs text-red-600 dark:text-red-400 font-medium"></p>
             </div>
 
-            <button id="main-btn" onclick="connect()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl transition-all flex items-center justify-center space-x-3">
-                <span id="btn-label">Generate Chart</span>
-                <i id="btn-spin" class="hidden lucide-refresh-cw w-5 h-5 animate-spin"></i>
+            <button id="connect-btn" onclick="fetchData()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl transition-all flex items-center justify-center space-x-2">
+                <span id="btn-text">Generate Chart</span>
+                <i id="btn-spin" class="hidden lucide-refresh-cw w-4 h-4 spin"></i>
             </button>
-            
-            <p class="text-[10px] text-center text-slate-400 uppercase tracking-widest font-bold">Secure Vercel Connection</p>
         </div>
     </div>
 
     <!-- Chart View -->
     <div id="chart-view" class="hidden h-screen flex flex-col">
-        <header class="flex items-center justify-between p-4 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-xl border-b dark:border-zinc-800">
+        <header class="flex items-center justify-between p-4 border-b dark:border-zinc-800">
             <div class="flex items-center space-x-4">
-                <button onclick="location.reload()" class="p-2 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-xl transition-colors">
+                <button onclick="location.reload()" class="p-2 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-xl">
                     <i class="lucide-settings w-5 h-5"></i>
                 </button>
-                <select id="chart-type" onchange="redraw()" class="bg-transparent text-sm font-black outline-none uppercase tracking-tighter">
+                <select id="chart-type" onchange="redraw()" class="bg-transparent text-sm font-bold outline-none">
                     <option value="bar">Bar Chart</option>
                     <option value="line">Line Chart</option>
                     <option value="pie">Pie Chart</option>
-                    <option value="doughnut">Doughnut</option>
                 </select>
             </div>
-
             <div class="flex items-center space-x-2">
-                <select id="sel-label" onchange="redraw()" class="text-[10px] font-bold uppercase bg-slate-100 dark:bg-zinc-800 rounded-lg px-3 py-2 outline-none border-none"></select>
-                <select id="sel-value" onchange="redraw()" class="text-[10px] font-bold uppercase bg-slate-100 dark:bg-zinc-800 rounded-lg px-3 py-2 outline-none border-none text-blue-500"></select>
-                <button onclick="connect()" class="p-2 text-blue-500"><i class="lucide-refresh-cw w-4 h-4"></i></button>
+                <select id="sel-label" onchange="redraw()" class="text-[10px] font-bold uppercase bg-slate-100 dark:bg-zinc-800 rounded px-2 py-1"></select>
+                <select id="sel-value" onchange="redraw()" class="text-[10px] font-bold uppercase bg-slate-100 dark:bg-zinc-800 rounded px-2 py-1 text-blue-500"></select>
             </div>
         </header>
 
-        <main class="flex-1 p-6 md:p-12 flex items-center justify-center">
+        <main class="flex-1 p-6 flex items-center justify-center">
             <div class="chart-container">
                 <canvas id="canvas"></canvas>
             </div>
@@ -74,36 +71,40 @@
     </div>
 
     <script>
-        let dataSet = [];
-        let chart = null;
+        let notionResults = [];
+        let myChart = null;
 
-        async function connect() {
-            const dbUrl = document.getElementById('db-field').value.trim();
+        async function fetchData() {
+            const dbUrl = document.getElementById('db-input').value.trim();
             const errBox = document.getElementById('err-box');
             const errText = document.getElementById('err-text');
+            const btnText = document.getElementById('btn-text');
+            const btnSpin = document.getElementById('btn-spin');
 
             const idMatch = dbUrl.match(/[a-f0-9]{32}/i);
             if (!idMatch) {
                 errBox.classList.remove('hidden');
-                errText.innerText = "Please paste a valid Notion database URL.";
+                errText.innerText = "Please paste a valid Notion link.";
                 return;
             }
 
             errBox.classList.add('hidden');
-            document.getElementById('btn-label').innerText = "Loading...";
-            document.getElementById('btn-spin').classList.remove('hidden');
+            btnText.innerText = "Loading...";
+            btnSpin.classList.remove('hidden');
 
             try {
-                // We call our OWN Vercel API function
+                // Call YOUR Vercel backend
                 const response = await fetch(`/api/notion?databaseId=${idMatch[0]}`);
                 const data = await response.json();
 
-                if (!response.ok) throw new Error(data.message || "Connection failed.");
+                if (!response.ok) {
+                    throw new Error(data.message || "Failed to load database. Check if you invited the connection in Notion.");
+                }
 
-                dataSet = data.results;
-                if (!dataSet || dataSet.length === 0) throw new Error("The database is empty.");
+                notionResults = data.results;
+                if (notionResults.length === 0) throw new Error("Database is empty.");
 
-                setupSelects(dataSet[0].properties);
+                setupSelects(notionResults[0].properties);
                 document.getElementById('setup-view').classList.add('hidden');
                 document.getElementById('chart-view').classList.remove('hidden');
                 redraw();
@@ -111,8 +112,8 @@
                 errBox.classList.remove('hidden');
                 errText.innerText = err.message;
             } finally {
-                document.getElementById('btn-label').innerText = "Generate Chart";
-                document.getElementById('btn-spin').classList.add('hidden');
+                btnText.innerText = "Generate Chart";
+                btnSpin.classList.add('hidden');
             }
         }
 
@@ -121,9 +122,9 @@
             const v = document.getElementById('sel-value');
             l.innerHTML = ""; v.innerHTML = "";
             Object.keys(props).forEach(k => {
-                const h = `<option value="${k}">${k}</option>`;
-                l.innerHTML += h;
-                if (['number', 'formula'].includes(props[k].type)) v.innerHTML += h;
+                const opt = `<option value="${k}">${k}</option>`;
+                l.innerHTML += opt;
+                if (['number', 'formula'].includes(props[k].type)) v.innerHTML += opt;
             });
             if (v.innerHTML === "") v.innerHTML = l.innerHTML;
         }
@@ -139,34 +140,34 @@
         }
 
         function redraw() {
-            if (chart) chart.destroy();
+            if (myChart) myChart.destroy();
             const lProp = document.getElementById('sel-label').value;
             const vProp = document.getElementById('sel-value').value;
             const type = document.getElementById('chart-type').value;
             const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-            chart = new Chart(document.getElementById('canvas'), {
+            myChart = new Chart(document.getElementById('canvas'), {
                 type: type,
                 data: {
-                    labels: dataSet.map(r => getVal(r, lProp)),
+                    labels: notionResults.map(r => getVal(r, lProp)),
                     datasets: [{
                         label: vProp,
-                        data: dataSet.map(r => getVal(r, vProp)),
-                        backgroundColor: type.includes('pie') ? ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'] : '#2563ebcc',
+                        data: notionResults.map(r => getVal(r, vProp)),
+                        backgroundColor: type === 'pie' ? ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'] : '#2563ebcc',
                         borderColor: '#2563eb',
                         borderWidth: 2,
-                        borderRadius: 12
+                        borderRadius: 8
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: type.includes('pie'), labels: { color: isDark ? '#fff' : '#000' } }
+                        legend: { display: type === 'pie', labels: { color: isDark ? '#fff' : '#000' } }
                     },
-                    scales: !type.includes('pie') ? {
-                        y: { ticks: { color: isDark ? '#666' : '#999' }, grid: { color: isDark ? '#222' : '#eee' } },
-                        x: { ticks: { color: isDark ? '#666' : '#999' }, grid: { display: false } }
+                    scales: type !== 'pie' ? {
+                        y: { ticks: { color: '#888' }, grid: { color: isDark ? '#222' : '#eee' } },
+                        x: { ticks: { color: '#888' }, grid: { display: false } }
                     } : {}
                 }
             });
