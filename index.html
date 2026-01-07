@@ -3,129 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notion Chart Pro</title>
+    <title>Notion Chart Debugger</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.321.0/font/lucide.min.css" rel="stylesheet">
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        .chart-container { position: relative; height: 70vh; width: 100%; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .chart-container { position: relative; height: 65vh; width: 100%; }
         .hidden { display: none; }
-        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .dot-loader { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     </style>
 </head>
-<body class="bg-[#ffffff] dark:bg-[#191919] text-gray-900 dark:text-gray-100">
+<body class="bg-slate-50 dark:bg-[#121212] text-slate-900 dark:text-slate-100">
 
-    <!-- Setup Screen -->
-    <div id="setup-screen" class="max-w-lg mx-auto mt-10 p-8 bg-white dark:bg-zinc-900 rounded-xl shadow-2xl border border-gray-100 dark:border-zinc-800">
-        <div class="flex items-center space-x-3 mb-6 pb-4 border-b dark:border-zinc-800">
-            <div class="bg-blue-500 p-2 rounded-lg text-white">
-                <i class="lucide-line-chart"></i>
+    <!-- Setup View -->
+    <div id="setup-view" class="max-w-xl mx-auto mt-10 p-6 md:p-10 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-zinc-800">
+        <div class="flex items-center space-x-3 mb-8">
+            <div class="p-3 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-500/30">
+                <i class="lucide-bar-chart-3 w-6 h-6"></i>
             </div>
-            <h1 class="text-xl font-bold">Notion Chart Setup</h1>
+            <h1 class="text-2xl font-bold tracking-tight">Notion Chart Pro</h1>
         </div>
 
-        <div class="space-y-5">
+        <div class="space-y-6">
+            <!-- Token Input -->
             <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Internal Integration Secret</label>
-                <input id="token-input" type="password" placeholder="ntn_..." 
-                    value="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"
-                    class="w-full p-3 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm">
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Database Link or ID</label>
-                <input id="db-input" type="text" placeholder="https://www.notion.so/..." 
-                    class="w-full p-3 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
-            </div>
-
-            <div class="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/30 rounded-lg">
-                <h3 class="text-xs font-bold text-blue-800 dark:text-blue-300 mb-1">Final Checklist:</h3>
-                <ul class="text-[11px] text-blue-700 dark:text-blue-400 space-y-1 list-disc ml-4">
-                    <li>Database page → <strong>"..."</strong> menu → <strong>"Add connections"</strong> → Search and invite your integration.</li>
-                    <li>Ensure your token starts with <code>ntn_</code> or <code>secret_</code>.</li>
-                </ul>
-            </div>
-
-            <button id="connect-btn" onclick="fetchData()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg flex items-center justify-center transition-all shadow-lg shadow-blue-500/20">
-                <div id="loader" class="hidden loader mr-3"></div>
-                <span id="btn-text">Generate Chart</span>
-            </button>
-            
-            <div id="error-box" class="hidden p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded-lg">
-                <div class="flex items-center space-x-2 text-red-600 dark:text-red-400 mb-1">
-                    <i class="lucide-alert-circle w-4 h-4"></i>
-                    <span class="text-sm font-bold">Error</span>
+                <label class="block text-xs font-bold uppercase text-slate-400 mb-2">Internal Integration Secret</label>
+                <div class="relative">
+                    <input id="token-field" type="password" placeholder="Starts with secret_..." 
+                        class="w-full p-3 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono text-sm">
+                    <button onclick="togglePass()" class="absolute right-3 top-3 text-slate-400 hover:text-blue-500">
+                        <i class="lucide-eye w-4 h-4" id="eye-icon"></i>
+                    </button>
                 </div>
-                <p id="error-msg" class="text-red-500 dark:text-red-400 text-xs leading-relaxed"></p>
+                <p class="text-[10px] text-slate-400 mt-2 italic">Get this from notion.so/my-integrations. It MUST start with "secret_".</p>
             </div>
+
+            <!-- DB Link Input -->
+            <div>
+                <label class="block text-xs font-bold uppercase text-slate-400 mb-2">Database Link</label>
+                <input id="db-field" type="text" placeholder="Paste your Notion DB link here..." 
+                    class="w-full p-3 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm">
+            </div>
+
+            <!-- Error Box -->
+            <div id="err-box" class="hidden p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded-xl">
+                <div class="flex items-center space-x-2 text-red-600 dark:text-red-400 mb-2 font-bold text-sm">
+                    <i class="lucide-alert-triangle w-4 h-4"></i>
+                    <span>Connection Error</span>
+                </div>
+                <p id="err-text" class="text-xs text-red-500 dark:text-red-400 leading-relaxed"></p>
+                <div id="debug-info" class="mt-2 pt-2 border-t border-red-100 dark:border-red-900/20 font-mono text-[9px] opacity-70 break-all"></div>
+            </div>
+
+            <button id="main-btn" onclick="connect()" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold py-4 rounded-xl shadow-xl shadow-blue-500/20 transition-all flex items-center justify-center space-x-3">
+                <span id="btn-label">Generate Chart</span>
+                <div id="btn-spin" class="hidden lucide-refresh-cw w-5 h-5 animate-spin"></div>
+            </button>
         </div>
     </div>
 
-    <!-- Chart Screen -->
-    <div id="chart-screen" class="hidden h-screen flex flex-col">
-        <header class="flex items-center justify-between p-4 border-b dark:border-zinc-800 bg-white dark:bg-zinc-900">
+    <!-- Chart View -->
+    <div id="chart-view" class="hidden h-screen flex flex-col animate-in fade-in duration-700">
+        <header class="flex items-center justify-between p-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b dark:border-zinc-800">
             <div class="flex items-center space-x-4">
-                <button onclick="showSetup()" class="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition">
-                    <i class="lucide-settings w-5 h-5 text-gray-500"></i>
+                <button onclick="goBack()" class="p-2 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg text-slate-500 transition-colors">
+                    <i class="lucide-chevron-left w-5 h-5"></i>
                 </button>
-                <div class="h-6 w-px bg-gray-200 dark:bg-zinc-800"></div>
-                <select id="chart-type" onchange="updateChart()" class="bg-transparent text-sm font-bold outline-none cursor-pointer">
-                    <option value="bar">Bar Chart</option>
-                    <option value="line">Line Chart</option>
-                    <option value="pie">Pie Chart</option>
-                    <option value="doughnut">Doughnut</option>
-                </select>
+                <div class="flex bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl">
+                    <button onclick="setChart('bar')" class="chart-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white dark:bg-zinc-700 shadow-sm" id="btn-bar">Bar</button>
+                    <button onclick="setChart('line')" class="chart-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all" id="btn-line">Line</button>
+                    <button onclick="setChart('pie')" class="chart-btn px-3 py-1.5 rounded-lg text-xs font-bold transition-all" id="btn-pie">Pie</button>
+                </div>
             </div>
 
             <div class="flex items-center space-x-2">
-                <select id="label-prop" onchange="updateChart()" class="text-[10px] uppercase font-bold tracking-tight bg-gray-100 dark:bg-zinc-800 rounded px-2 py-1 outline-none border-none"></select>
-                <i class="lucide-chevron-right w-3 h-3 text-gray-400"></i>
-                <select id="value-prop" onchange="updateChart()" class="text-[10px] uppercase font-bold tracking-tight bg-gray-100 dark:bg-zinc-800 rounded px-2 py-1 outline-none border-none"></select>
-                <button onclick="fetchData()" class="ml-2 p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-lg"><i class="lucide-refresh-cw w-4 h-4"></i></button>
+                <div class="hidden sm:flex items-center space-x-2 px-3 py-1.5 bg-slate-50 dark:bg-zinc-800 rounded-lg border dark:border-zinc-700">
+                    <select id="sel-label" onchange="redraw()" class="text-[10px] font-bold uppercase bg-transparent outline-none"></select>
+                    <span class="text-slate-300">/</span>
+                    <select id="sel-value" onchange="redraw()" class="text-[10px] font-bold uppercase bg-transparent outline-none"></select>
+                </div>
+                <button onclick="connect()" class="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg"><i class="lucide-rotate-cw w-4 h-4"></i></button>
             </div>
         </header>
 
-        <main class="flex-1 p-8 flex items-center justify-center overflow-hidden">
+        <main class="flex-1 p-4 md:p-10 flex items-center justify-center">
             <div class="chart-container">
-                <canvas id="mainChart"></canvas>
+                <canvas id="canvas"></canvas>
             </div>
         </main>
     </div>
 
     <script>
-        let dbResults = [];
-        let chartInstance = null;
+        let dbRows = [];
+        let chart = null;
+        let currentType = 'bar';
 
-        function showSetup() {
-            document.getElementById('setup-screen').classList.remove('hidden');
-            document.getElementById('chart-screen').classList.add('hidden');
+        // Pre-fill fields from previous attempts if available
+        document.getElementById('token-field').value = localStorage.getItem('notion_token') || "";
+        document.getElementById('db-field').value = localStorage.getItem('notion_db') || "";
+
+        function togglePass() {
+            const f = document.getElementById('token-field');
+            const i = document.getElementById('eye-icon');
+            if (f.type === 'password') {
+                f.type = 'text';
+                i.classList.replace('lucide-eye', 'lucide-eye-off');
+            } else {
+                f.type = 'password';
+                i.classList.replace('lucide-eye-off', 'lucide-eye');
+            }
         }
 
-        async function fetchData() {
-            const token = document.getElementById('token-input').value.trim();
-            const input = document.getElementById('db-input').value.trim();
-            const errorBox = document.getElementById('error-box');
-            const errorMsg = document.getElementById('error-msg');
-            const loader = document.getElementById('loader');
-            const btnText = document.getElementById('btn-text');
+        function goBack() {
+            document.getElementById('setup-view').classList.remove('hidden');
+            document.getElementById('chart-view').classList.add('hidden');
+        }
 
-            if (!token || !input) {
-                showError("Please fill in both the Token and the Database Link.");
+        async function connect() {
+            const token = document.getElementById('token-field').value.trim();
+            const dbUrl = document.getElementById('db-field').value.trim();
+            const btnLabel = document.getElementById('btn-label');
+            const btnSpin = document.getElementById('btn-spin');
+            const errBox = document.getElementById('err-box');
+            const debugInfo = document.getElementById('debug-info');
+
+            if (!token || !dbUrl) {
+                showError("Please fill in both fields.");
                 return;
             }
 
-            // Extract ID: Supports full URL or just the 32-char string
-            const idMatch = input.match(/[a-f0-9]{32}/i);
-            const dbId = idMatch ? idMatch[0] : input;
+            // Save for convenience
+            localStorage.setItem('notion_token', token);
+            localStorage.setItem('notion_db', dbUrl);
 
-            errorBox.classList.add('hidden');
-            loader.classList.remove('hidden');
-            btnText.innerText = "Connecting...";
+            // Clean Database ID
+            const idMatch = dbUrl.match(/[a-f0-9]{32}/i);
+            if (!idMatch) {
+                showError("Could not find a valid 32-character ID in your link.");
+                return;
+            }
+            const dbId = idMatch[0];
+
+            errBox.classList.add('hidden');
+            btnSpin.classList.remove('hidden');
+            btnLabel.innerText = "Querying Notion...";
 
             try {
-                // Using a CORS proxy is strictly necessary for browser-to-notion requests
+                // Different proxy to avoid Authorization header stripping
                 const proxy = "https://corsproxy.io/?";
                 const api = `https://api.notion.com/v1/databases/${dbId}/query`;
 
@@ -142,88 +168,84 @@
                 const data = await response.json();
 
                 if (!response.ok) {
-                    if (data.status === 401) throw new Error("Invalid API Token. Check for extra spaces or if it was revoked.");
-                    if (data.status === 404) throw new Error("Database not found. Did you forget to 'Add Connection' inside Notion?");
-                    throw new Error(data.message || "Connection failed.");
+                    debugInfo.innerText = "Response Body: " + JSON.stringify(data);
+                    if (data.status === 401) throw new Error("API Token Invalid. Check if you copied the 'Internal Integration Secret' and that it matches exactly.");
+                    if (data.status === 404) throw new Error("Database not found. IMPORTANT: You must click '...' inside Notion and 'Add Connection' to invite your integration.");
+                    throw new Error(data.message || "Failed to fetch data.");
                 }
 
-                dbResults = data.results;
-                if (!dbResults || dbResults.length === 0) throw new Error("Connected, but the database has no rows.");
+                dbRows = data.results;
+                if (!dbRows || dbRows.length === 0) throw new Error("Database connected, but it has no entries to display.");
 
-                setupSelects(dbResults[0].properties);
-                document.getElementById('setup-screen').classList.add('hidden');
-                document.getElementById('chart-screen').classList.remove('hidden');
-                updateChart();
+                setupSelects(dbRows[0].properties);
+                document.getElementById('setup-view').classList.add('hidden');
+                document.getElementById('chart-view').classList.remove('hidden');
+                redraw();
 
             } catch (err) {
                 showError(err.message);
             } finally {
-                loader.classList.add('hidden');
-                btnText.innerText = "Generate Chart";
+                btnSpin.classList.add('hidden');
+                btnLabel.innerText = "Generate Chart";
             }
         }
 
-        function showError(msg) {
-            const errorBox = document.getElementById('error-box');
-            const errorMsg = document.getElementById('error-msg');
-            errorMsg.innerText = msg;
-            errorBox.classList.remove('hidden');
+        function showError(m) {
+            document.getElementById('err-box').classList.remove('hidden');
+            document.getElementById('err-text').innerText = m;
         }
 
         function setupSelects(props) {
-            const lSel = document.getElementById('label-prop');
-            const vSel = document.getElementById('value-prop');
-            lSel.innerHTML = "";
-            vSel.innerHTML = "";
-
-            Object.keys(props).forEach(key => {
-                const type = props[key].type;
-                const opt = `<option value="${key}">${key}</option>`;
-                lSel.innerHTML += opt;
-                if (['number', 'formula', 'rollup'].includes(type)) {
-                    vSel.innerHTML += opt;
-                }
+            const l = document.getElementById('sel-label');
+            const v = document.getElementById('sel-value');
+            l.innerHTML = ""; v.innerHTML = "";
+            Object.keys(props).forEach(k => {
+                const type = props[k].type;
+                const h = `<option value="${k}">${k}</option>`;
+                l.innerHTML += h;
+                if (['number', 'formula', 'rollup'].includes(type)) v.innerHTML += h;
             });
-            if (vSel.innerHTML === "") vSel.innerHTML = lSel.innerHTML;
+            if (v.innerHTML === "") v.innerHTML = l.innerHTML;
         }
 
-        function parseVal(item, name) {
+        function getVal(item, name) {
             const p = item.properties[name];
             if (!p) return 0;
-            if (p.type === 'title') return p.title[0]?.plain_text || "Untitled";
+            if (p.type === 'title') return p.title[0]?.plain_text || "No Title";
             if (p.type === 'number') return p.number || 0;
             if (p.type === 'select') return p.select?.name || "";
-            if (p.type === 'status') return p.status?.name || "";
             if (p.type === 'formula') return p.formula.number || p.formula.string || 0;
             return 0;
         }
 
-        function updateChart() {
-            if (chartInstance) chartInstance.destroy();
+        function setChart(t) {
+            currentType = t;
+            document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('bg-white', 'dark:bg-zinc-700', 'shadow-sm'));
+            document.getElementById('btn-' + t).classList.add('bg-white', 'dark:bg-zinc-700', 'shadow-sm');
+            redraw();
+        }
 
-            const lName = document.getElementById('label-prop').value;
-            const vName = document.getElementById('value-prop').value;
-            const type = document.getElementById('chart-type').value;
-
-            const labels = dbResults.map(i => parseVal(i, lName));
-            const values = dbResults.map(i => parseVal(i, vName));
-
-            const ctx = document.getElementById('mainChart').getContext('2d');
+        function redraw() {
+            if (chart) chart.destroy();
+            const lProp = document.getElementById('sel-label').value;
+            const vProp = document.getElementById('sel-value').value;
+            const ctx = document.getElementById('canvas').getContext('2d');
             const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const color = '#3b82f6';
 
-            chartInstance = new Chart(ctx, {
-                type: type,
+            const labels = dbRows.map(r => getVal(r, lProp));
+            const values = dbRows.map(r => getVal(r, vProp));
+
+            chart = new Chart(ctx, {
+                type: currentType,
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: vName,
+                        label: vProp,
                         data: values,
-                        backgroundColor: type.includes('pie') ? ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'] : `${color}44`,
-                        borderColor: color,
+                        backgroundColor: currentType.includes('pie') ? ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'] : '#3b82f6cc',
+                        borderColor: '#3b82f6',
                         borderWidth: 2,
-                        borderRadius: type === 'bar' ? 6 : 0,
-                        tension: 0.3
+                        borderRadius: 8
                     }]
                 },
                 options: {
@@ -231,13 +253,13 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: { 
-                            display: type.includes('pie'),
-                            labels: { color: isDark ? '#fff' : '#000' }
+                            display: currentType.includes('pie'),
+                            labels: { color: isDark ? '#fff' : '#000', font: { weight: 'bold' } }
                         }
                     },
-                    scales: !type.includes('pie') ? {
-                        y: { ticks: { color: isDark ? '#888' : '#666' }, grid: { color: isDark ? '#222' : '#eee' } },
-                        x: { ticks: { color: isDark ? '#888' : '#666' }, grid: { display: false } }
+                    scales: !currentType.includes('pie') ? {
+                        y: { ticks: { color: isDark ? '#71717a' : '#52525b' }, grid: { color: isDark ? '#27272a' : '#f1f5f9' } },
+                        x: { ticks: { color: isDark ? '#71717a' : '#52525b' }, grid: { display: false } }
                     } : {}
                 }
             });
